@@ -1,0 +1,25 @@
+{
+  "portRangeStart": 3000,
+  "portRangeEnd": 9999,
+  "excludedPorts": [
+    5432, 5433, 3306, 27017, 6379,
+    8080, 8000, 8888, 9000,
+    5173, 5174, 4200, 4201,
+    6006, 8081,
+    9229, 9222,
+    5000, 5001,
+    5500, 5555, 5900
+  ],
+  "ports": [
+    {
+      "name": "server",
+      "envVars": ["PORT"]
+    },
+    {
+      "name": "client",
+      "envVars": ["CLIENT_PORT"],
+      "urlEnvVars": ["CLIENT_URL"],
+      "urlTemplate": "http://localhost:${port}"
+    }
+  ]
+}

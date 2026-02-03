@@ -1,0 +1,10 @@
+{
+  "name": "port-pool",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "provision": "bun run index.ts provision",
+    "release": "bun run index.ts release",
+    "list": "bun run index.ts list"
+  }
+}
