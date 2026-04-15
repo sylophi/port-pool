@@ -65,4 +65,4 @@ Ports are allocated in consecutive blocks based on the number of ports defined.
 
 ## State
 
-Allocations are stored in `~/port-pool/state.json`.
+Allocations are stored in `state.json` alongside the script.

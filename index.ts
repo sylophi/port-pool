@@ -2,12 +2,11 @@
 
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join, resolve, dirname } from "path";
-import { homedir } from "os";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CONFIG_FILE = join(__dirname, "config.json");
-const STATE_FILE = join(homedir(), "port-pool", "state.json");
+const STATE_FILE = join(__dirname, "state.json");
 
 interface PortConfig {
   name: string;
