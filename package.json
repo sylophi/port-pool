@@ -3,8 +3,18 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "provision": "bun run index.ts provision",
-    "release": "bun run index.ts release",
-    "list": "bun run index.ts list"
+    "build": "bun build --compile src/index.ts --outfile dist/port-pool",
+    "provision": "bun run src/index.ts provision",
+    "release": "bun run src/index.ts release",
+    "ensure": "bun run src/index.ts ensure",
+    "list": "bun run src/index.ts list"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.13",
+    "@types/proper-lockfile": "^4.1.4"
+  },
+  "dependencies": {
+    "proper-lockfile": "^4.1.2",
+    "zod": "^4.4.3"
   }
 }

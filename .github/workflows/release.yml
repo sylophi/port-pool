@@ -1,0 +1,30 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Build all targets
+        run: |
+          mkdir -p dist
+          for target in darwin-arm64 darwin-x64 linux-arm64 linux-x64; do
+            bun build --compile --target=bun-${target} \
+              --define 'process.env.VERSION'='"${{ github.ref_name }}"' \
+              src/index.ts --outfile dist/port-pool-${target}
+          done
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --generate-notes \
+            dist/port-pool-*
