@@ -90,6 +90,7 @@ Defines the machine-level port pool:
 
 ```json
 {
+  "schemaVersion": 1,
   "portRangeStart": 3000,
   "portRangeEnd": 9999,
   "excludedPorts": [
@@ -103,7 +104,11 @@ Defines the machine-level port pool:
 }
 ```
 
-`portRangeStart`/`portRangeEnd` define the inclusive bounds of the pool. `excludedPorts` lists ports inside the range that should never be allocated (typically defaults of common dev tools — Postgres, Redis, Vite, Django, Jupyter, etc.). Respects `$XDG_CONFIG_HOME` if set.
+- `schemaVersion`: required integer. Identifies the file's schema. The current schema is `1`. If a future port-pool release changes the schema, this number bumps and the binary errors clearly when it sees an old (or unknown) version.
+- `portRangeStart`/`portRangeEnd`: inclusive bounds of the pool.
+- `excludedPorts`: ports inside the range that should never be allocated (typically defaults of common dev tools — Postgres, Redis, Vite, Django, Jupyter, etc.).
+
+Respects `$XDG_CONFIG_HOME` if set.
 
 ### Per-project config (`port-pool.config.json`)
 

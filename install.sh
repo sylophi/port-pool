@@ -36,6 +36,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
   mkdir -p "$CONFIG_DIR"
   cat > "$CONFIG_FILE" <<'EOF'
 {
+  "schemaVersion": 1,
   "portRangeStart": 3000,
   "portRangeEnd": 9999,
   "excludedPorts": [

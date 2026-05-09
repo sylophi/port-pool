@@ -2,12 +2,16 @@ import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { z } from "zod";
+import { checkSchemaVersion } from "../schema-check";
 
 const configHome = process.env.XDG_CONFIG_HOME || join(homedir(), ".config");
 const CONFIG_FILE = join(configHome, "port-pool", "config.json");
 
+export const CONFIG_SCHEMA_VERSION = 1;
+
 export const ConfigSchema = z
   .object({
+    schemaVersion: z.literal(CONFIG_SCHEMA_VERSION),
     portRangeStart: z.number().int().positive(),
     portRangeEnd: z.number().int().positive(),
     excludedPorts: z.array(z.number().int().positive()),
@@ -23,6 +27,7 @@ export function loadConfig(): Config {
     console.error(`Error: config not found at ${CONFIG_FILE}`);
     console.error("Create it with the following starter content:\n");
     console.error(`{
+  "schemaVersion": ${CONFIG_SCHEMA_VERSION},
   "portRangeStart": 3000,
   "portRangeEnd": 9999,
   "excludedPorts": [
@@ -43,6 +48,7 @@ export function loadConfig(): Config {
     console.error(`Error: failed to parse ${CONFIG_FILE}: ${(err as Error).message}`);
     process.exit(1);
   }
+  checkSchemaVersion(raw, CONFIG_FILE, CONFIG_SCHEMA_VERSION);
   const result = ConfigSchema.safeParse(raw);
   if (!result.success) {
     console.error(

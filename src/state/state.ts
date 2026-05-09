@@ -3,6 +3,9 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { lockSync } from "proper-lockfile";
 import { z } from "zod";
+import { checkSchemaVersion } from "../schema-check";
+
+export const STATE_SCHEMA_VERSION = 1;
 
 export interface AllocationEntry {
   envFile: string;
@@ -16,6 +19,7 @@ export interface Allocation {
 }
 
 export interface State {
+  schemaVersion: typeof STATE_SCHEMA_VERSION;
   allocations: Allocation[];
 }
 
@@ -37,6 +41,7 @@ const dataHome = process.env.XDG_DATA_HOME || join(homedir(), ".local", "share")
 const STATE_FILE = join(dataHome, "port-pool", "state.json");
 
 const StateSchema = z.object({
+  schemaVersion: z.literal(STATE_SCHEMA_VERSION),
   allocations: z.array(
     z.object({
       dir: z.string(),
@@ -59,7 +64,7 @@ function formatZodIssues(err: z.ZodError): string {
 
 export function loadState(): State {
   if (!existsSync(STATE_FILE)) {
-    return { allocations: [] };
+    return { schemaVersion: STATE_SCHEMA_VERSION, allocations: [] };
   }
   let raw: unknown;
   try {
@@ -68,6 +73,7 @@ export function loadState(): State {
     console.error(`Error: failed to parse ${STATE_FILE}: ${(err as Error).message}`);
     process.exit(1);
   }
+  checkSchemaVersion(raw, STATE_FILE, STATE_SCHEMA_VERSION);
   const result = StateSchema.safeParse(raw);
   if (!result.success) {
     console.error(
@@ -85,7 +91,7 @@ export function saveState(state: State): void {
 function ensureStateFile(): void {
   if (!existsSync(STATE_FILE)) {
     mkdirSync(join(dataHome, "port-pool"), { recursive: true });
-    saveState({ allocations: [] });
+    saveState({ schemaVersion: STATE_SCHEMA_VERSION, allocations: [] });
   }
 }
 
