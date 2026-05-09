@@ -1,5 +1,5 @@
-import { VERSION } from "../version.ts";
-import { loadUpdateCache, saveUpdateCache } from "./cache.ts";
+import { VERSION } from "../version";
+import { loadUpdateCache, saveUpdateCache } from "./cache";
 
 const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const FETCH_TIMEOUT_MS = 2_000;

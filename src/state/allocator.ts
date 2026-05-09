@@ -1,22 +1,17 @@
 import type { Config } from "../config/config";
+import { allocationPorts } from "./state";
 import type { Allocation, State } from "./state";
-
-export function isPortAvailable(
-  port: number,
-  state: State,
-  config: Config,
-): boolean {
-  if (config.excludedPorts.includes(port)) return false;
-  return !state.allocations.some((a) =>
-    Object.values(a.ports).includes(port),
-  );
-}
 
 export function findNextAvailablePorts(
   state: State,
   config: Config,
   blockSize: number,
 ): number[] | null {
+  const used = new Set<number>(config.excludedPorts);
+  for (const a of state.allocations) {
+    for (const p of allocationPorts(a)) used.add(p);
+  }
+
   const candidates: number[] = [];
   for (
     let basePort = config.portRangeStart;
@@ -25,7 +20,7 @@ export function findNextAvailablePorts(
   ) {
     let allAvailable = true;
     for (let i = 0; i < blockSize; i++) {
-      if (!isPortAvailable(basePort + i, state, config)) {
+      if (used.has(basePort + i)) {
         allAvailable = false;
         break;
       }

@@ -23,9 +23,16 @@ export function loadConfig(): Config {
     console.error(`Error: config not found at ${CONFIG_FILE}`);
     console.error("Create it with the following starter content:\n");
     console.error(`{
-  "portRangeStart": 8500,
-  "portRangeEnd": 9000,
-  "excludedPorts": [8888]
+  "portRangeStart": 3000,
+  "portRangeEnd": 9999,
+  "excludedPorts": [
+    3000, 3001, 3306,
+    4000, 4200,
+    5000, 5173, 5432, 5500,
+    6379,
+    8000, 8080, 8081, 8443, 8888,
+    9000, 9090, 9200
+  ]
 }`);
     process.exit(1);
   }

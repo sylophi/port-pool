@@ -9,31 +9,62 @@ const PORT_NAME = z
     message: "must match /^[a-zA-Z_][a-zA-Z0-9_]*$/",
   });
 
-export const ProjectConfigSchema = z
+const ENV_FILE = z
+  .string()
+  .min(1, { message: "must be a non-empty string" })
+  .refine((p) => !p.split(/[\\/]/).includes(".."), {
+    message: "must not contain '..' segments",
+  })
+  .refine((p) => !p.startsWith("/"), {
+    message: "must be a relative path",
+  });
+
+const EntrySchema = z
   .object({
-    ports: z
+    envFile: ENV_FILE,
+    portNames: z
       .array(PORT_NAME)
       .min(1, { message: "must be a non-empty array" })
       .refine((xs) => new Set(xs).size === xs.length, {
-        message: "port names must be unique",
+        message: "port names must be unique within entry",
       }),
     env: z.record(z.string(), z.string()),
   })
-  .superRefine((cfg, ctx) => {
-    const declared = new Set(cfg.ports);
-    for (const [key, template] of Object.entries(cfg.env)) {
+  .superRefine((entry, ctx) => {
+    const declared = new Set(entry.portNames);
+    for (const [key, template] of Object.entries(entry.env)) {
       for (const ref of findPortReferences(template)) {
         if (!declared.has(ref)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["env", key],
-            message: `references unknown port '${ref}'`,
+            message: `references unknown port '${ref}' (not declared in this entry's portNames)`,
           });
         }
       }
     }
   });
 
+export const ProjectConfigSchema = z
+  .array(EntrySchema)
+  .min(1, { message: "must be a non-empty array of entries" })
+  .superRefine((entries, ctx) => {
+    const seen = new Map<string, number>();
+    entries.forEach((entry, i) => {
+      const prev = seen.get(entry.envFile);
+      if (prev !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [i, "envFile"],
+          message: `duplicate envFile '${entry.envFile}' (also at index ${prev})`,
+        });
+      } else {
+        seen.set(entry.envFile, i);
+      }
+    });
+  });
+
+export type ProjectConfigEntry = z.infer<typeof EntrySchema>;
 export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
 
 function formatZodIssues(err: z.ZodError): string {

@@ -4,6 +4,9 @@ export function formatPorts(ports: Record<string, number>): string {
     .join(", ");
 }
 
-export function formatPortsShort(ports: Record<string, number>): string {
-  return Object.values(ports).join("/");
+export function formatAllocationEntry(entry: {
+  envFile: string;
+  ports: Record<string, number>;
+}): string {
+  return `${entry.envFile}: ${formatPorts(entry.ports)}`;
 }

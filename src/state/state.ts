@@ -4,14 +4,33 @@ import { join } from "node:path";
 import { lockSync } from "proper-lockfile";
 import { z } from "zod";
 
-export interface Allocation {
+export interface AllocationEntry {
+  envFile: string;
   ports: Record<string, number>;
+}
+
+export interface Allocation {
   dir: string;
+  entries: AllocationEntry[];
   timestamp: number;
 }
 
 export interface State {
   allocations: Allocation[];
+}
+
+export function allocationPorts(a: Allocation): number[] {
+  return a.entries.flatMap((e) => Object.values(e.ports));
+}
+
+export function allocationPortCount(a: Allocation): number {
+  return a.entries.reduce((s, e) => s + Object.keys(e.ports).length, 0);
+}
+
+export function entriesByFile(a: Allocation): Map<string, AllocationEntry> {
+  const map = new Map<string, AllocationEntry>();
+  for (const e of a.entries) map.set(e.envFile, e);
+  return map;
 }
 
 const dataHome = process.env.XDG_DATA_HOME || join(homedir(), ".local", "share");
@@ -20,8 +39,13 @@ const STATE_FILE = join(dataHome, "port-pool", "state.json");
 const StateSchema = z.object({
   allocations: z.array(
     z.object({
-      ports: z.record(z.string(), z.number().int()),
       dir: z.string(),
+      entries: z.array(
+        z.object({
+          envFile: z.string(),
+          ports: z.record(z.string(), z.number().int()),
+        }),
+      ),
       timestamp: z.number().int().nonnegative(),
     }),
   ),

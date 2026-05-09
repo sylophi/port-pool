@@ -1,4 +1,4 @@
-const TOKEN_RE = /\$\{ports\.([a-zA-Z_][a-zA-Z0-9_]*)\}/g;
+const TOKEN_RE = /\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g;
 
 export function findPortReferences(template: string): string[] {
   return Array.from(template.matchAll(TOKEN_RE), (m) => m[1]);
@@ -19,4 +19,16 @@ export function renderEnv(
     });
   }
   return result;
+}
+
+export function renderEnvOrExit(
+  env: Record<string, string>,
+  ports: Record<string, number>,
+): Record<string, string> {
+  try {
+    return renderEnv(env, ports);
+  } catch (err) {
+    console.error(`Error: ${(err as Error).message}`);
+    process.exit(1);
+  }
 }

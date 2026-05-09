@@ -1,7 +1,4 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import type { ProjectConfig } from "../config/project-config";
-
-const PURE_PORT_TEMPLATE_RE = /^\$\{ports\.([a-zA-Z_][a-zA-Z0-9_]*)\}$/;
 
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -29,29 +26,6 @@ export function applyEnvFile(
   }
 
   writeFileSync(envPath, content);
-}
-
-export function readPortNumbersFromEnv(
-  envPath: string,
-  projectConfig: ProjectConfig,
-): number[] | null {
-  if (!existsSync(envPath)) return null;
-  const content = readFileSync(envPath, "utf-8");
-  const numbers = new Set<number>();
-
-  let foundAny = false;
-  for (const [envKey, template] of Object.entries(projectConfig.env)) {
-    if (!PURE_PORT_TEMPLATE_RE.test(template)) continue;
-    foundAny = true;
-    const match = content.match(
-      new RegExp(`^${escapeRegex(envKey)}=(\\d+)$`, "m"),
-    );
-    if (!match) return null;
-    numbers.add(parseInt(match[1], 10));
-  }
-
-  if (!foundAny) return null;
-  return Array.from(numbers).sort((a, b) => a - b);
 }
 
 export function diffEnv(

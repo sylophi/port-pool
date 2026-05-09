@@ -1,5 +1,5 @@
-import { formatPortsShort } from "../format";
-import { loadState } from "../state/state";
+import { formatAllocationEntry } from "../format";
+import { allocationPorts, loadState } from "../state/state";
 
 export function list(): void {
   const state = loadState();
@@ -8,15 +8,17 @@ export function list(): void {
     return;
   }
 
-  const sorted = [...state.allocations].sort((x, y) => {
-    const xMin = Math.min(...Object.values(x.ports));
-    const yMin = Math.min(...Object.values(y.ports));
-    return xMin - yMin;
-  });
+  const sorted = [...state.allocations].sort(
+    (x, y) => Math.min(...allocationPorts(x)) - Math.min(...allocationPorts(y)),
+  );
 
   console.log("Current allocations:");
   for (const a of sorted) {
     const date = new Date(a.timestamp).toLocaleString();
-    console.log(`  ${formatPortsShort(a.ports)} -> ${a.dir} (${date})`);
+    const portRange = allocationPorts(a).sort((p, q) => p - q).join("/");
+    console.log(`  ${portRange} -> ${a.dir} (${date})`);
+    for (const entry of a.entries) {
+      console.log(`    ${formatAllocationEntry(entry)}`);
+    }
   }
 }

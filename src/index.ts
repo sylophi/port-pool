@@ -3,6 +3,7 @@
 import { ensure } from "./commands/ensure";
 import { list } from "./commands/list";
 import { provision } from "./commands/provision";
+import { prune } from "./commands/prune";
 import { release } from "./commands/release";
 import { update } from "./commands/update";
 import { version } from "./commands/version";
@@ -52,6 +53,22 @@ async function main(): Promise<void> {
     case "list":
       list();
       break;
+    case "prune": {
+      const unknown = rest.find((a) => a.startsWith("--") && a !== "--dry-run");
+      if (unknown) {
+        console.error(`Unknown flag: ${unknown}`);
+        console.error("Usage: port-pool prune [--dry-run]");
+        process.exit(1);
+      }
+      const positional = rest.filter((a) => !a.startsWith("--"));
+      if (positional.length > 0) {
+        console.error(`Unexpected arguments: ${positional.join(" ")}`);
+        console.error("Usage: port-pool prune [--dry-run]");
+        process.exit(1);
+      }
+      prune({ dryRun: rest.includes("--dry-run") });
+      break;
+    }
     case "version":
     case "--version":
     case "-v":
@@ -69,6 +86,7 @@ async function main(): Promise<void> {
       console.log("  ensure <dir> [--check]    Provision if needed; repair .env drift if not");
       console.log("                            --check: read-only, exit 1 if anything would change");
       console.log("  list                      Show all current allocations");
+      console.log("  prune [--dry-run]         Remove allocations whose dir or config is gone");
       console.log("  version                   Print the installed version");
       console.log("  update                    Download and install the latest version");
       process.exit(command ? 1 : 0);

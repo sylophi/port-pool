@@ -1,5 +1,5 @@
 import { chmodSync, renameSync, writeFileSync } from "node:fs";
-import { VERSION } from "../version.ts";
+import { VERSION } from "../version";
 
 const REPO = "sylophi/port-pool";
 const RELEASES_API = `https://api.github.com/repos/${REPO}/releases/latest`;
