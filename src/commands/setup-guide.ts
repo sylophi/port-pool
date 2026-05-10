@@ -3,16 +3,20 @@ export function setupGuide(): void {
 
 1. Create port-pool.config.json at the project root:
 
-   [
-     {
-       "envFile": ".env",
-       "portNames": ["server"],
-       "env": { "PORT": "\${server}" }
+   {
+     "schemaVersion": 1,
+     "portNames": ["server"],
+     "envFiles": {
+       ".env": {
+         "PORT": "\${server}"
+       }
      }
-   ]
+   }
 
-   Each entry manages one env file. Add a port name for each port the
-   project needs. Templates reference ports as \${NAME}.
+   portNames declares the project's ports (one number allocated per
+   name). envFiles is a map of env-file path to env-var templates that
+   reference ports as \${NAME}. The same name in two files resolves to
+   the same port.
 
 2. Wire 'port-pool ensure .' into the dev command. For example, in
    package.json:

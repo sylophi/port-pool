@@ -114,39 +114,29 @@ Respects `$XDG_CONFIG_HOME` if set.
 
 Lives in each project's root, alongside `package.json` / `tsconfig.json`. Typically committed to the project repo (unlike resolved env files, which contain the port numbers and are usually git-ignored).
 
-The file is a non-empty array. Each entry corresponds to one env file the project wants `port-pool` to manage:
-
 ```json
-[
-  {
-    "envFile": ".env",
-    "portNames": ["server", "client"],
-    "env": {
+{
+  "schemaVersion": 1,
+  "portNames": ["server", "client", "db"],
+  "envFiles": {
+    ".env": {
       "PORT":        "${server}",
       "CLIENT_PORT": "${client}",
       "SERVER_URL":  "http://localhost:${server}"
-    }
-  },
-  {
-    "envFile": ".env.local",
-    "portNames": ["db"],
-    "env": {
-      "DATABASE_URL": "postgres://localhost:${db}/app"
+    },
+    ".env.local": {
+      "DATABASE_URL": "postgres://localhost:${db}/app",
+      "API_URL":      "http://localhost:${server}"
     }
   }
-]
+}
 ```
 
-Per entry:
+- `schemaVersion`: required integer. Identifies the file's schema. The current schema is `1`. Future port-pool releases that change the schema bump this number; the binary errors clearly when it sees an old (or unknown) version.
+- `portNames`: project-global list of port names. The length determines how many ports are allocated for the project. Names must match `[a-zA-Z_][a-zA-Z0-9_]*` and be unique. Templates reference ports as `${NAME}`.
+- `envFiles`: map of relative env file path to env-var templates. Each value is a record of `ENV_VAR_NAME` → template string. Same `${NAME}` can appear in multiple files and resolves to the same port (that's the point).
 
-- `envFile`: relative path to the env file, from the project root. `..` traversal is rejected.
-- `portNames`: ordered list of names for this entry's ports. The length of this array determines how many ports are allocated; the names let env templates refer to them by purpose rather than position (e.g. `${server}` reads better than `${ports[0]}`, and reordering names doesn't reshuffle existing allocations). Names must match `[a-zA-Z_][a-zA-Z0-9_]*` and be unique within the entry.
-- `env`: map from env-var name to template. Templates reference allocated ports as `${NAME}`, where `NAME` is declared in this entry's `portNames`. The same port can be referenced more than once — e.g. `PORT=${server}` and `URL=http://localhost:${server}`. Any `${X}` referencing a name not in `portNames` is an error at config load.
-
-Across the array:
-
-- Each entry is independent — port names in different entries are different ports. The total port count for the project is the sum of all entries' port counts.
-- Each `envFile` may appear at most once.
+Path rules: env file paths are relative to the project root, may be in subdirectories (e.g. `apps/web/.env`), and reject `..` segments and absolute paths. JSON keys enforce uniqueness.
 
 When provisioning:
 

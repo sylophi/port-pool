@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { formatAllocationEntry } from "../format";
+import { formatPorts } from "../format";
 import { withState } from "../state/state";
 
 export function release(dir: string): void {
@@ -12,9 +12,6 @@ export function release(dir: string): void {
       return;
     }
     const removed = state.allocations.splice(idx, 1)[0];
-    console.log(`Released allocation for ${resolvedDir}:`);
-    for (const entry of removed.entries) {
-      console.log(`  ${formatAllocationEntry(entry)}`);
-    }
+    console.log(`Released ${resolvedDir}: ${formatPorts(removed.ports)}`);
   });
 }

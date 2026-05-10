@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { z } from "zod";
-import { checkSchemaVersion } from "../schema-check";
+import { checkSchemaVersionOrExit } from "../schema-check";
 
 const configHome = process.env.XDG_CONFIG_HOME || join(homedir(), ".config");
 const CONFIG_FILE = join(configHome, "port-pool", "config.json");
@@ -48,7 +48,7 @@ export function loadConfig(): Config {
     console.error(`Error: failed to parse ${CONFIG_FILE}: ${(err as Error).message}`);
     process.exit(1);
   }
-  checkSchemaVersion(raw, CONFIG_FILE, CONFIG_SCHEMA_VERSION);
+  checkSchemaVersionOrExit(raw, CONFIG_FILE, CONFIG_SCHEMA_VERSION);
   const result = ConfigSchema.safeParse(raw);
   if (!result.success) {
     console.error(

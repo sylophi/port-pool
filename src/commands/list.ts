@@ -1,4 +1,4 @@
-import { formatAllocationEntry } from "../format";
+import { formatPorts } from "../format";
 import { allocationPorts, loadState } from "../state/state";
 
 export function list(): void {
@@ -17,8 +17,6 @@ export function list(): void {
     const date = new Date(a.timestamp).toLocaleString();
     const portRange = allocationPorts(a).sort((p, q) => p - q).join("/");
     console.log(`  ${portRange} -> ${a.dir} (${date})`);
-    for (const entry of a.entries) {
-      console.log(`    ${formatAllocationEntry(entry)}`);
-    }
+    console.log(`    ${formatPorts(a.ports)}`);
   }
 }

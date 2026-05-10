@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { formatAllocationEntry } from "../format";
+import { formatPorts } from "../format";
 import type { Allocation } from "../state/state";
 import { loadState, withState } from "../state/state";
 
@@ -35,9 +35,7 @@ function reportOrphans(orphans: OrphanInfo[], verb: string): void {
   console.log(`${verb} ${orphans.length} allocation(s):`);
   for (const o of orphans) {
     console.log(`  - ${o.allocation.dir} (${o.reason})`);
-    for (const entry of o.allocation.entries) {
-      console.log(`    ${formatAllocationEntry(entry)}`);
-    }
+    console.log(`    ${formatPorts(o.allocation.ports)}`);
   }
 }
 

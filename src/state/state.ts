@@ -3,18 +3,13 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { lockSync } from "proper-lockfile";
 import { z } from "zod";
-import { checkSchemaVersion } from "../schema-check";
+import { checkSchemaVersionOrExit } from "../schema-check";
 
-export const STATE_SCHEMA_VERSION = 1;
-
-export interface AllocationEntry {
-  envFile: string;
-  ports: Record<string, number>;
-}
+export const STATE_SCHEMA_VERSION = 2;
 
 export interface Allocation {
   dir: string;
-  entries: AllocationEntry[];
+  ports: Record<string, number>;
   timestamp: number;
 }
 
@@ -24,17 +19,11 @@ export interface State {
 }
 
 export function allocationPorts(a: Allocation): number[] {
-  return a.entries.flatMap((e) => Object.values(e.ports));
+  return Object.values(a.ports);
 }
 
 export function allocationPortCount(a: Allocation): number {
-  return a.entries.reduce((s, e) => s + Object.keys(e.ports).length, 0);
-}
-
-export function entriesByFile(a: Allocation): Map<string, AllocationEntry> {
-  const map = new Map<string, AllocationEntry>();
-  for (const e of a.entries) map.set(e.envFile, e);
-  return map;
+  return Object.keys(a.ports).length;
 }
 
 const dataHome = process.env.XDG_DATA_HOME || join(homedir(), ".local", "share");
@@ -45,12 +34,7 @@ const StateSchema = z.object({
   allocations: z.array(
     z.object({
       dir: z.string(),
-      entries: z.array(
-        z.object({
-          envFile: z.string(),
-          ports: z.record(z.string(), z.number().int()),
-        }),
-      ),
+      ports: z.record(z.string(), z.number().int()),
       timestamp: z.number().int().nonnegative(),
     }),
   ),
@@ -73,7 +57,7 @@ export function loadState(): State {
     console.error(`Error: failed to parse ${STATE_FILE}: ${(err as Error).message}`);
     process.exit(1);
   }
-  checkSchemaVersion(raw, STATE_FILE, STATE_SCHEMA_VERSION);
+  checkSchemaVersionOrExit(raw, STATE_FILE, STATE_SCHEMA_VERSION);
   const result = StateSchema.safeParse(raw);
   if (!result.success) {
     console.error(

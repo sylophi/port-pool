@@ -3,10 +3,3 @@ export function formatPorts(ports: Record<string, number>): string {
     .map(([name, port]) => `${name}=${port}`)
     .join(", ");
 }
-
-export function formatAllocationEntry(entry: {
-  envFile: string;
-  ports: Record<string, number>;
-}): string {
-  return `${entry.envFile}: ${formatPorts(entry.ports)}`;
-}

@@ -5,27 +5,20 @@ import type { ProjectConfig } from "../config/project-config";
 import { loadProjectConfigOrExit } from "../config/project-config";
 import { applyEnvFile } from "../env/env";
 import { renderEnvOrExit } from "../env/template";
-import { formatAllocationEntry } from "../format";
+import { formatPorts } from "../format";
 import { findLeastRecentlyUsed, findNextAvailablePorts } from "../state/allocator";
-import type { AllocationEntry, State } from "../state/state";
+import type { State } from "../state/state";
 import { allocationPortCount, allocationPorts, withState } from "../state/state";
 
-function distributePorts(
+function buildPortMap(
   projectConfig: ProjectConfig,
   portNumbers: number[],
-): AllocationEntry[] {
-  const entries: AllocationEntry[] = [];
-  let cursor = 0;
-  for (const cfgEntry of projectConfig) {
-    const slice = portNumbers.slice(cursor, cursor + cfgEntry.portNames.length);
-    cursor += cfgEntry.portNames.length;
-    const ports: Record<string, number> = {};
-    cfgEntry.portNames.forEach((name, i) => {
-      ports[name] = slice[i];
-    });
-    entries.push({ envFile: cfgEntry.envFile, ports });
-  }
-  return entries;
+): Record<string, number> {
+  const ports: Record<string, number> = {};
+  projectConfig.portNames.forEach((name, i) => {
+    ports[name] = portNumbers[i];
+  });
+  return ports;
 }
 
 export function performProvision(
@@ -33,8 +26,8 @@ export function performProvision(
   projectConfig: ProjectConfig,
   state: State,
   resolvedDir: string,
-): AllocationEntry[] {
-  const blockSize = projectConfig.reduce((s, e) => s + e.portNames.length, 0);
+): Record<string, number> {
+  const blockSize = projectConfig.portNames.length;
   let portNumbers = findNextAvailablePorts(state, config, blockSize);
 
   if (!portNumbers) {
@@ -53,24 +46,24 @@ export function performProvision(
     portNumbers = allocationPorts(lru).sort((a, b) => a - b);
   }
 
-  const entries = distributePorts(projectConfig, portNumbers);
+  const ports = buildPortMap(projectConfig, portNumbers);
 
   // Render and validate every file before any disk write so a bad template
   // doesn't leave the project half-written.
-  const rendered = entries.map((entry, i) => ({
-    envPath: join(resolvedDir, entry.envFile),
-    contents: renderEnvOrExit(projectConfig[i].env, entry.ports),
+  const writes = Object.entries(projectConfig.envFiles).map(([envFile, env]) => ({
+    envPath: join(resolvedDir, envFile),
+    contents: renderEnvOrExit(env, ports),
   }));
 
   state.allocations.push({
     dir: resolvedDir,
-    entries,
+    ports,
     timestamp: Date.now(),
   });
 
-  for (const r of rendered) applyEnvFile(r.envPath, r.contents);
+  for (const w of writes) applyEnvFile(w.envPath, w.contents);
 
-  return entries;
+  return ports;
 }
 
 export function provision(dir: string): void {
@@ -82,17 +75,11 @@ export function provision(dir: string): void {
   withState((state) => {
     const existing = state.allocations.find((a) => a.dir === resolvedDir);
     if (existing) {
-      console.log(`Directory already has ports allocated:`);
-      for (const entry of existing.entries) {
-        console.log(`  ${formatAllocationEntry(entry)}`);
-      }
+      console.log(`Directory already has ports allocated: ${formatPorts(existing.ports)}`);
       console.log("Use 'release' first if you want new ports.");
       return;
     }
-    const entries = performProvision(config, projectConfig, state, resolvedDir);
-    console.log(`Provisioned ports for ${resolvedDir}:`);
-    for (const entry of entries) {
-      console.log(`  ${formatAllocationEntry(entry)}`);
-    }
+    const ports = performProvision(config, projectConfig, state, resolvedDir);
+    console.log(`Provisioned ports for ${resolvedDir}: ${formatPorts(ports)}`);
   });
 }
