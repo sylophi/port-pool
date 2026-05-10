@@ -78,7 +78,7 @@ port-pool ensure --check .
 
 `--check` exits with status 1 if the project is not provisioned or if any env file has drifted; otherwise it's silent.
 
-Multiple parallel `ensure` calls (e.g. across worktrees starting their dev servers simultaneously) are safe; allocations serialize via a sidecar lock at `~/.local/share/port-pool/state.json.lock/`.
+Multiple parallel `ensure` calls (e.g. across worktrees starting their dev servers simultaneously) are safe; allocations serialize via a sidecar lock at `~/.local/share/port-pool/state.json.lock`.
 
 ## Configuration
 
@@ -153,22 +153,19 @@ Allocations are stored at `~/.local/share/port-pool/state.json` (respects `$XDG_
 Running from source still works:
 
 ```bash
-bun run src/index.ts ensure /path/to/project
-# or via package script:
-bun run provision /path/to/project
+go run . ensure /path/to/project
 ```
 
 To isolate dev runs from your real allocations, override the XDG variables:
 
 ```bash
-XDG_CONFIG_HOME=/tmp/dev/config XDG_DATA_HOME=/tmp/dev/data bun run src/index.ts ensure /tmp/test-project
+XDG_CONFIG_HOME=/tmp/dev/config XDG_DATA_HOME=/tmp/dev/data go run . ensure /tmp/test-project
 ```
 
 ### Building from source
 
 ```sh
-bun install
-bun run build              # produces dist/port-pool
+go build -o dist/port-pool .
 cp dist/port-pool ~/.local/bin/
 ```
 

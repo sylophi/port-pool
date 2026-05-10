@@ -12,15 +12,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
       - name: Build all targets
         run: |
           mkdir -p dist
-          for target in darwin-arm64 darwin-x64 linux-arm64 linux-x64; do
-            bun build --compile --target=bun-${target} \
-              --define 'process.env.VERSION'='"${{ github.ref_name }}"' \
-              src/index.ts --outfile dist/port-pool-${target}
+          for combo in darwin-arm64 darwin-x64 linux-arm64 linux-x64; do
+            os=${combo%-*}
+            arch=${combo#*-}
+            goarch=$arch
+            [ "$arch" = "x64" ] && goarch=amd64
+            CGO_ENABLED=0 GOOS=$os GOARCH=$goarch \
+              go build -trimpath \
+                -ldflags="-s -w -X main.version=${{ github.ref_name }}" \
+                -o dist/port-pool-${combo} .
           done
       - env:
           GH_TOKEN: ${{ github.token }}
