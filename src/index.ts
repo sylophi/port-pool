@@ -5,9 +5,26 @@ import { list } from "./commands/list";
 import { provision } from "./commands/provision";
 import { prune } from "./commands/prune";
 import { release } from "./commands/release";
+import { setupGuide } from "./commands/setup-guide";
 import { update } from "./commands/update";
 import { version } from "./commands/version";
 import { maybeCheckForUpdate } from "./update/check";
+
+function printUsage(): void {
+  console.log("Usage: port-pool <command> [directory]");
+  console.log("");
+  console.log("Commands:");
+  console.log("  provision <dir>           Allocate ports and update .env in directory");
+  console.log("  release <dir>             Release ports used by directory");
+  console.log("  ensure <dir> [--check]    Provision if needed; repair .env drift if not");
+  console.log("                            --check: read-only, exit 1 if anything would change");
+  console.log("  list                      Show all current allocations");
+  console.log("  prune [--dry-run]         Remove allocations whose dir or config is gone");
+  console.log("  setup-guide               Print instructions for adding port-pool to a project");
+  console.log("  version                   Print the installed version");
+  console.log("  update                    Download and install the latest version");
+  console.log("  help                      Print this help message");
+}
 
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
@@ -69,6 +86,9 @@ async function main(): Promise<void> {
       prune({ dryRun: rest.includes("--dry-run") });
       break;
     }
+    case "setup-guide":
+      setupGuide();
+      break;
     case "version":
     case "--version":
     case "-v":
@@ -77,18 +97,13 @@ async function main(): Promise<void> {
     case "update":
       await update();
       break;
+    case "help":
+    case "--help":
+    case "-h":
+      printUsage();
+      break;
     default:
-      console.log("Usage: port-pool <command> [directory]");
-      console.log("");
-      console.log("Commands:");
-      console.log("  provision <dir>           Allocate ports and update .env in directory");
-      console.log("  release <dir>             Release ports used by directory");
-      console.log("  ensure <dir> [--check]    Provision if needed; repair .env drift if not");
-      console.log("                            --check: read-only, exit 1 if anything would change");
-      console.log("  list                      Show all current allocations");
-      console.log("  prune [--dry-run]         Remove allocations whose dir or config is gone");
-      console.log("  version                   Print the installed version");
-      console.log("  update                    Download and install the latest version");
+      printUsage();
       process.exit(command ? 1 : 0);
   }
 
