@@ -54,6 +54,8 @@ func Uninstall(args []string, version string) error {
 		fmt.Printf("  - State:   %s\n", dataDir)
 	case 0:
 		fmt.Printf("  - State:   %s  (no active allocations)\n", dataDir)
+	case 1:
+		fmt.Printf("  - State:   %s  (1 active allocation)\n", dataDir)
 	default:
 		fmt.Printf("  - State:   %s  (%d active allocations)\n", dataDir, allocCount)
 	}
