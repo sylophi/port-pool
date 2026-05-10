@@ -31,6 +31,15 @@ The check is automatically skipped when:
 - stderr is not a TTY (piped or redirected)
 - the binary was built locally (version is `dev`)
 
+## Uninstalling
+
+```bash
+port-pool uninstall          # prompts for confirmation
+port-pool uninstall --yes    # skip prompt
+```
+
+Removes the binary, `~/.config/port-pool/` (global config and any per-pool configs), and `~/.local/share/port-pool/` (state and update cache). `.env` files in project directories are not touched.
+
 ## Setup
 
 The install script creates a starter config at `~/.config/port-pool/config.json` with a default range of 3000–9999 and common dev-tool ports (databases, Vite, Django, etc.) excluded. Edit it to suit your machine — see [Configuration](#configuration).
@@ -140,9 +149,9 @@ Path rules: env file paths are relative to the project root, may be in subdirect
 
 When provisioning:
 
-- Existing keys in each env file are updated in place; missing keys are appended.
+- **Keys not mentioned in `port-pool.config.json` are left untouched** — port-pool only manages the keys you list, so existing secrets and unrelated settings in the same file are safe.
+- Existing managed keys are updated in place; missing managed keys are appended.
 - Files are created if they don't exist.
-- Keys not mentioned in `port-pool.config.json` are left untouched.
 
 ## State
 

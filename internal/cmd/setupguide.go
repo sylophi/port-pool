@@ -8,7 +8,8 @@ func SetupGuide(args []string) error {
 	}
 	fmt.Print(`To add port-pool to a project:
 
-1. Create port-pool.config.json at the project root:
+1. Create port-pool.config.json at the project root. For a monorepo,
+   place it at the workspace root so every package shares one pool.
 
    {
      "schemaVersion": 1,
@@ -21,9 +22,12 @@ func SetupGuide(args []string) error {
    }
 
    portNames declares the project's ports (one number allocated per
-   name). envFiles is a map of env-file path to env-var templates that
-   reference ports as ${NAME}. The same name in two files resolves to
-   the same port.
+   name). envFiles is a map of env-file path (relative to the directory
+   passed to 'ensure') to env-var templates that reference ports as
+   ${NAME}. The same name in two files resolves to the same port.
+
+   port-pool only manages the keys you list. Other keys in the same
+   file (e.g. API tokens, secrets) are left untouched.
 
 2. Wire 'port-pool ensure .' into the dev command. For example, in
    package.json:
@@ -37,10 +41,6 @@ func SetupGuide(args []string) error {
    On the first run, ports are auto-provisioned and the env files are
    created. Subsequent runs are silent fast no-ops. If an env file has
    drifted, ensure repairs it before the dev server starts.
-
-3. (Optional) Gitignore the resolved env files:
-
-   echo ".env" >> .gitignore
 
 See https://github.com/sylophi/port-pool#per-project-config for the
 full schema.

@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"runtime"
 	"time"
 
@@ -46,12 +45,9 @@ func SelfUpdate(version string) error {
 	url := release.AssetURL(tagName, asset)
 	fmt.Printf("Downloading %s for %s...\n", tagName, suffix)
 
-	currentPath, err := os.Executable()
+	currentPath, err := resolveExecutable()
 	if err != nil {
 		return err
-	}
-	if resolved, err := filepath.EvalSymlinks(currentPath); err == nil {
-		currentPath = resolved
 	}
 	tmpPath := currentPath + ".update"
 

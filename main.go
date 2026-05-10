@@ -27,6 +27,7 @@ func printUsage() {
 	fmt.Println("  setup-guide               Print instructions for adding port-pool to a project")
 	fmt.Println("  version                   Print the installed version")
 	fmt.Println("  update                    Download and install the latest version")
+	fmt.Println("  uninstall [--yes]         Remove binary, global config, and state")
 	fmt.Println("  help                      Print this help message")
 }
 
@@ -56,7 +57,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	update.MaybeCheck(version)
+	if args[0] != "uninstall" {
+		update.MaybeCheck(version)
+	}
 }
 
 func dispatch(args []string) error {
@@ -75,6 +78,8 @@ func dispatch(args []string) error {
 		return cmd.SetupGuide(args[1:])
 	case "update":
 		return cmd.SelfUpdate(version)
+	case "uninstall":
+		return cmd.Uninstall(args[1:], version)
 	case "version", "--version", "-v":
 		fmt.Println(version)
 		return nil
