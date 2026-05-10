@@ -13,10 +13,19 @@ func SetupGuide(args []string) error {
 
    {
      "schemaVersion": 1,
-     "portNames": ["server"],
+     "portNames": ["web", "api", "db"],
      "envFiles": {
        ".env": {
-         "PORT": "${server}"
+         "DB_PORT": "${db}"
+       },
+       "apps/web/.env.local": {
+         "PORT":    "${web}",
+         "API_URL": "http://localhost:${api}",
+         "WS_URL":  "ws://localhost:${api}"
+       },
+       "apps/api/.env": {
+         "PORT":         "${api}",
+         "DATABASE_URL": "postgres://localhost:${db}/app"
        }
      }
    }
@@ -24,7 +33,8 @@ func SetupGuide(args []string) error {
    portNames declares the project's ports (one number allocated per
    name). envFiles is a map of env-file path (relative to the directory
    passed to 'ensure') to env-var templates that reference ports as
-   ${NAME}. The same name in two files resolves to the same port.
+   ${NAME}. Paths can be root-level or in subdirectories. The same name
+   in multiple files resolves to the same port.
 
    port-pool only manages the keys you list. Other keys in the same
    file (e.g. API tokens, secrets) are left untouched.

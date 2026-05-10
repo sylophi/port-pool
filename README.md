@@ -126,16 +126,19 @@ Lives in each project's root, alongside `package.json` / `tsconfig.json`. Typica
 ```json
 {
   "schemaVersion": 1,
-  "portNames": ["server", "client", "db"],
+  "portNames": ["web", "api", "db"],
   "envFiles": {
     ".env": {
-      "PORT":        "${server}",
-      "CLIENT_PORT": "${client}",
-      "SERVER_URL":  "http://localhost:${server}"
+      "DB_PORT": "${db}"
     },
-    ".env.local": {
-      "DATABASE_URL": "postgres://localhost:${db}/app",
-      "API_URL":      "http://localhost:${server}"
+    "apps/web/.env.local": {
+      "PORT":    "${web}",
+      "API_URL": "http://localhost:${api}",
+      "WS_URL":  "ws://localhost:${api}"
+    },
+    "apps/api/.env": {
+      "PORT":         "${api}",
+      "DATABASE_URL": "postgres://localhost:${db}/app"
     }
   }
 }
